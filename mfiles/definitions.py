@@ -38,7 +38,7 @@ OBJ_PROPERTY = {
 # DataTypes
 # https://developer.m-files.com/APIs/REST-API/Reference/enumerations/mfdatatype/
 
-LOOKUP_DATATYPES = [9, 10]
+# LOOKUP_DATATYPES = [9, 10]
 
 # Standard MFDataType
 DATATYPE = {
@@ -51,4 +51,11 @@ LOOKUP_DATATYPE = {
         "Item": "", # Custom datatype ID
         "Version": -1
     }
+}
+
+LOOKUPS_DATATYPE = {
+    "Lookups": [{
+        "Item": "", # Custom datatype ID
+        "Version": -1
+    }]
 }

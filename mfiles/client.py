@@ -15,8 +15,7 @@ from os.path import splitext
 import requests
 
 # Internal modules
-from mfiles.definitions import DATATYPE, LOOKUP_DATATYPE, LOOKUP_DATATYPES, \
-    OBJ, OBJ_PROPERTY
+from mfiles.definitions import DATATYPE, LOOKUP_DATATYPE, LOOKUPS_DATATYPE, OBJ, OBJ_PROPERTY
 from mfiles.errors import MFilesException
 
 # M-files server info
@@ -239,7 +238,10 @@ class MFilesClient():
             int: ID of value in value list.
         """
         list_items = self.value_list_items(list_id)
+        is_id = isinstance(value_name, int) 
         for item in list_items["Items"]:
+            if is_id and item["ID"] == value_name:
+                return item["ID"]
             same_name = item["Name"] == value_name
             ok_owner = not item["HasOwner"] or item["OwnerID"] in owner_ids
             if same_name and ok_owner:
@@ -342,13 +344,19 @@ class MFilesClient():
         prop = deepcopy(OBJ_PROPERTY)
         prop["PropertyDef"] = property_info["ID"]
         prop["TypedValue"]["DataType"] = property_info["DataType"]
-        if property_info["DataType"] in LOOKUP_DATATYPES:
+        if property_info["DataType"] == 9:
             # DataType needs to be looked up
             datatype_id = self.get_value_id(property_value,
                                             property_info["ValueList"],
                                             owners)
             datatype = deepcopy(LOOKUP_DATATYPE)
             datatype["Lookup"]["Item"] = datatype_id
+        elif property_info["DataType"] == 10:
+            datatype_id = self.get_value_id(property_value,
+                                            property_info["ValueList"],
+                                            owners)
+            datatype = deepcopy(LOOKUPS_DATATYPE)
+            datatype["Lookups"][0]["Item"] = datatype_id
         else:
             datatype = deepcopy(DATATYPE)
             datatype["Value"] = property_value
@@ -397,7 +405,8 @@ class MFilesClient():
             prop = self.get_property(property_name, owners,
                                      extra_info[property_name])
             obj["PropertyValues"].append(prop)
-        obj["Files"] = [file_info]
+        if file_info:
+            obj["Files"] = [file_info]
         data = json.dumps(obj)
         endpoint = "objects/%s" % object_type
         return self.post(endpoint, data)
